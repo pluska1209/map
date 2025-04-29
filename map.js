@@ -27,7 +27,7 @@ async function calculateRoute() {
       const routes = response.routes;
       const path = routes[0].overview_path;
 
-      const crowdLevels = await estimateCrowdLevels();
+      const crowdLevels = await estimateCrowdLevels(); // 這裡去抓crowd_data.json
 
       map.setCenter(path[0]);
 
@@ -71,7 +71,7 @@ async function estimateCrowdLevels() {
   const hour = now.getHours();
 
   try {
-    const res = await fetch("crowd_data.json");
+    const res = await fetch("crowd_data.json");  // 這裡才fetch
     const data = await res.json();
 
     // 根據目前時間過濾適合的人流資料
