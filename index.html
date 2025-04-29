@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-9J247gDV8AGbPah2JJfxnrSsv6WHQ5k&libraries=places"></script>
+  <title>手機版｜人潮熱度導航互動版</title>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-9J247gDV8AGbPah2JJfxnrSsv6WHQ5k&libraries=places"></script>
+
+</head>
+<body>
+
+<div id="map"></div>
+<div id="controls">
+  <input id="start" type="text" placeholder="輸入起點 (例：台北車站)">
+  <input id="end" type="text" placeholder="輸入終點 (例：信義誠品)">
+  <button onclick="calculateRoute()">開始導航</button>
+</div>
+
+<script>
+let map;
+
+function initMap() {
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 14,
+    center: { lat: 25.0330, lng: 121.5654 },
+  });
+}
+
+function calculateRoute() {
+  const start = document.getElementById("start").value;
+  const end = document.getElementById("end").value;
+
+  if (!start || !end) {
+    alert("請輸入起點和終點");
+    return;
+  }
+
+  const directionsService = new google.maps.DirectionsService();
+
+  directionsService.route({
+    origin: start,
+    destination: end,
+    travelMode: 'DRIVING',
+    provideRouteAlternatives: true
+  }, (response, status) => {
+    if (status === 'OK') {
+      const routes = response.routes;
+
+      // 只示範第一條路線
+      const path = routes[0].overview_path;
+
+      // 模擬每一段人潮擁擠度 (隨機生成，實際可以接資料庫或人工標定)
+      const crowdLevels = Array(path.length - 1).fill(0).map(() => Math.floor(Math.random() * 5));
+
+      map.setCenter(path[0]);
+
+      for (let i = 0; i < path.length - 1; i++) {
+        const segment = new google.maps.Polyline({
+          path: [path[i], path[i + 1]],
+          geodesic: true,
+          strokeColor: getColor(crowdLevels[i]),
+          strokeOpacity: 1.0,
+          strokeWeight: 6,
+        });
+        segment.setMap(map);
+      }
+
+      new google.maps.Marker({
+        position: path[0],
+        map,
+        label: "起",
+      });
+
+      new google.maps.Marker({
+        position: path[path.length - 1],
+        map,
+        label: "終",
+      });
+    } else {
+      alert("無法找到路線: " + status);
+    }
+  });
+}
+
+function getColor(level) {
+  if (level <= 1) return "#00C853"; // 綠色
+  if (level <= 3) return "#FFD600"; // 黃色
+  return "#D50000"; // 紅色
+}
+
+window.onload = initMap;
+</script>
+
+</body>
+</html>
