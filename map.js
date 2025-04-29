@@ -1,10 +1,21 @@
 let map;
+let crowdData = [];
 
 function initMap() {
   map = new google.maps.Map(document.getElementById("map"), {
     zoom: 14,
     center: { lat: 25.0330, lng: 121.5654 },
   });
+  preloadCrowdData();
+}
+
+async function preloadCrowdData() {
+  try {
+    const res = await fetch("crowd_data.json");
+    crowdData = await res.json();
+  } catch (error) {
+    console.error("無法讀取 crowd_data.json", error);
+  }
 }
 
 async function calculateRoute() {
@@ -27,15 +38,20 @@ async function calculateRoute() {
       const routes = response.routes;
       const path = routes[0].overview_path;
 
-      const crowdLevels = await estimateCrowdLevels(); // 這裡去抓crowd_data.json
-
       map.setCenter(path[0]);
 
       for (let i = 0; i < path.length - 1; i++) {
+        const midPoint = {
+          lat: (path[i].lat() + path[i + 1].lat()) / 2,
+          lng: (path[i].lng() + path[i + 1].lng()) / 2
+        };
+
+        const level = await getCrowdLevelAt(midPoint);
+
         const segment = new google.maps.Polyline({
           path: [path[i], path[i + 1]],
           geodesic: true,
-          strokeColor: getColor(crowdLevels[i % crowdLevels.length]),
+          strokeColor: getColor(level),
           strokeOpacity: 1.0,
           strokeWeight: 6,
           map
@@ -65,26 +81,41 @@ function getColor(level) {
   return "#D50000"; // 紅色（擁擠）
 }
 
-async function estimateCrowdLevels() {
+async function getCrowdLevelAt(point) {
   const now = new Date();
   const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][now.getDay()];
   const hour = now.getHours();
 
-  try {
-    const res = await fetch("crowd_data.json");  // 這裡才fetch
-    const data = await res.json();
+  // 檢查是否有附近地點符合條件
+  const nearby = crowdData.filter(d => d.weekday === weekday && d.hour === hour)
+    .map(d => ({
+      ...d,
+      distance: getDistance(point.lat, point.lng, d.lat, d.lng)
+    }))
+    .filter(d => d.distance < 0.3); // 300 公尺內視為"附近"
 
-    // 根據目前時間過濾適合的人流資料
-    const matching = data.filter(d => d.weekday === weekday && d.hour === hour);
-    if (matching.length > 0) {
-      return matching.map(d => d.crowdLevel);
-    } else {
-      return [2, 2, 2, 2]; // 沒資料時給中等人流預設值
-    }
-  } catch (error) {
-    console.error("無法讀取crowd_data.json", error);
-    return [2, 2, 2, 2];
+  if (nearby.length > 0) {
+    // 取最近的一筆
+    nearby.sort((a, b) => a.distance - b.distance);
+    return nearby[0].crowdLevel;
   }
+
+  return 2; // 預設中度擁擠
+}
+
+function getDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371; // 地球半徑（公里）
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; // 回傳公里
+}
+
+function toRad(x) {
+  return x * Math.PI / 180;
 }
 
 window.onload = initMap;

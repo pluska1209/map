@@ -1,0 +1,11 @@
+[
+  { "location": "台北車站", "lat": 25.0478, "lng": 121.5170, "weekday": "Wednesday", "hour": 8, "crowdLevel": 3 },
+  { "location": "台北車站", "lat": 25.0478, "lng": 121.5170, "weekday": "Wednesday", "hour": 17, "crowdLevel": 5 },
+  { "location": "信義誠品", "lat": 25.0330, "lng": 121.5623, "weekday": "Wednesday", "hour": 12, "crowdLevel": 2 },
+  { "location": "信義誠品", "lat": 25.0330, "lng": 121.5623, "weekday": "Wednesday", "hour": 20, "crowdLevel": 4 },
+  { "location": "市政府捷運站", "lat": 25.0400, "lng": 121.5670, "weekday": "Wednesday", "hour": 8, "crowdLevel": 2 },
+  { "location": "市政府捷運站", "lat": 25.0400, "lng": 121.5670, "weekday": "Wednesday", "hour": 18, "crowdLevel": 4 },
+  { "location": "師大夜市", "lat": 25.0261, "lng": 121.5271, "weekday": "Wednesday", "hour": 19, "crowdLevel": 5 },
+  { "location": "大安森林公園", "lat": 25.0335, "lng": 121.5358, "weekday": "Wednesday", "hour": 10, "crowdLevel": 2 },
+  { "location": "大安森林公園", "lat": 25.0335, "lng": 121.5358, "weekday": "Wednesday", "hour": 17, "crowdLevel": 3 }
+]
